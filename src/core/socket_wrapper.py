@@ -7,16 +7,16 @@ simulator module
 # a time.sleep(). However, by default, latency is disabled. In order
 # to simulate it, uncoment the lines L0, L1, L2 and L3.
 
-# Latency HAS BEEN ENABLED
+# Latency HAS BEEN DISABLED
 
 latency = 0.005  # Seconds (L0)
 #latency = 0.020
 
 import time  # (L1)
 import socket
-import sys
-#from .stderr import stderr as info
 import logging
+import sys
+import core.stderr as stderr
 
 class Socket_wrapper():
     AF_INET = socket.AF_INET
@@ -33,7 +33,10 @@ class Socket_wrapper():
     #def __init__(self, family=None, type=None, sock=None):
         logging.basicConfig(stream=sys.stdout, format="%(asctime)s.%(msecs)03d %(message)s %(levelname)-8s %(name)s %(pathname)s:%(lineno)d", datefmt="%H:%M:%S")
         self.lg = logging.getLogger(__name__)
-        self.lg.setLevel(logging.ERROR)
+        if __debug__:
+            self.lg.setLevel(logging.DEBUG)
+        else:
+            self.lg.setLevel(logging.ERROR)
 
         if sock is None:
             self.sock = socket.socket(family, type)
@@ -42,23 +45,21 @@ class Socket_wrapper():
             self.sock = sock
             self.type = type
         try:
-            self.lg.info(f"{self.sock.getsockname()}: latency={latency}\n")
-            #sys.stderr.write(f"{self.sock.getsockname()}: latency={latency}\n"); sys.stderr.flush()
+            self.lg.debug(f"{self.sock.getsockname()}: latency={latency}\n")
         except:
-            self.lg.info(f"{self.sock.getsockname()}: latency disabled\n")
-            #sys.stderr.write(f"{self.sock.getsockname()}: latency disabled\n"); sys.stderr.flush()
+            self.lg.debug(f"{self.sock.getsockname()}: latency disabled\n")
 
     def send(self, msg):
-        self.lg.info(f"{self.sock.getsockname()} - [{msg}] => {self.sock.getpeername()}")
+        self.lg.debug(f"{self.sock.getsockname()} - [{msg}] => {self.sock.getpeername()}")
         return self.sock.send(msg)
 
     def sendall(self, msg):
-        self.lg.info(f"{self.sock.getsockname()} - [{msg}] => {self.sock.getpeername()}")
+        self.lg.debug(f"{self.sock.getsockname()} - [{msg}] => {self.sock.getpeername()}")
         return self.sock.sendall(msg)
 
     def sendto(self, msg, address):
-        
-        self.lg.info(f"{self.sock.getsockname()} - [{msg}] --> {address}")
+
+        self.lg.debug(f"{self.sock.getsockname()} - [{msg}] --> {address}")
         try:
             return self.sock.sendto(msg, socket.MSG_DONTWAIT, address)
         except ConnectionRefusedError:
@@ -73,33 +74,33 @@ class Socket_wrapper():
             raise
 
     def recv(self, msg_length):
-        time.sleep(latency)  # L2
+        #time.sleep(latency)  # L2
         msg = self.sock.recv(msg_length)
         while len(msg) < msg_length:
             msg += self.sock.recv(msg_length - len(msg))
-        self.lg.info(f"{self.sock.getsockname()} <= [{msg}] - {self.sock.getpeername()}")
+        self.lg.debug(f"{self.sock.getsockname()} <= [{msg}] - {self.sock.getpeername()}")
         return msg
 
     def recvfrom(self, max_msg_length):
-        time.sleep(latency)  # L3
+        #time.sleep(latency)  # L3
         try:
             msg, sender = self.sock.recvfrom(max_msg_length)
-            self.lg.info(f"{self.sock.getsockname()} <-- [{msg}] - {sender}")
+            self.lg.debug(f"{self.sock.getsockname()} <-- [{msg}] - {sender}")
             return (msg, sender)
         except socket.timeout:
             raise
 
     def connect(self, endpoint):
-        self.lg.info(f"connected to {endpoint} ({self.sock})")
+        self.lg.debug(f"connected to {endpoint} ({self.sock})")
         return self.sock.connect(endpoint)
 
     def accept(self):
-        self.lg.info(f"accepted connection ({self.sock})")
+        self.lg.debug(f"accepted connection ({self.sock})")
         peer_serve_socket, peer = self.sock.accept()
         return (peer_serve_socket, peer)
 
     def bind(self, address):
-        self.lg.info(f"binding {address} ({self.sock})")
+        self.lg.debug(f"binding {address} ({self.sock})")
         try:
             return self.sock.bind(address)
         except:
@@ -107,20 +108,20 @@ class Socket_wrapper():
             raise
 
     def listen(self, n):
-        self.lg.info(f"listen({n}): {self.sock}")
+        self.lg.debug(f"listen({n}): {self.sock}")
         return self.sock.listen(n)
 
     def close(self):
-        self.lg.info(f"closing connection ({self.sock})")
+        self.lg.debug(f"closing connection ({self.sock})")
         return self.sock.close()  # Should delete files
 
     def settimeout(self, value=1.0): # In seconds
-        self.lg.info(f"settimeout({value}): {self.sock}")
+        self.lg.debug(f"settimeout({value}): {self.sock}")
         return self.sock.settimeout(value)
 
     def gettimeout(self):
         timeout = self.sock.gettimeout()
-        self.lg.info(f"gettimeout({self.sock}): {timeout}")
+        self.lg.debug(f"gettimeout({self.sock}): {timeout}")
         return timeout
 
     #def timeout(self):
