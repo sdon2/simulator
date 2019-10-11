@@ -1,4 +1,6 @@
 STEPS:
+Clone or download master.zip from Simulator Github Repository "https://github.com/sdon2/simulator.git"
+
 1. Install updates first using following command:
     
     "sudo apt-get update"
