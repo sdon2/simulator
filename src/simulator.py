@@ -95,7 +95,7 @@ class Simulator():
     def run_a_splitter(self, splitter_id):
         if self.buffer_size == 0:
             self.buffer_size = self.compute_buffer_size()
-        if self.set_of_rules == "DBS" or self.set_of_rules == "DBS2" or self.set_of_rules == "IMS":
+        if self.set_of_rules.lower() == "dbs" or self.set_of_rules.lower() == "dbs2" or self.set_of_rules.lower() == "ims":
             splitter = Splitter_DBS_simulator(
                 buffer_size = self.buffer_size,
                 max_chunk_loss = self.max_chunk_loss_at_splitter,
@@ -116,6 +116,7 @@ class Simulator():
         self.lg.debug("simulator: creating {}".format(type))
         if type == "monitor":
             if first_monitor is True:
+                peer = None
                 pass
                 #chunks_before_leave = 99999999
             if self.set_of_rules == "DBS":
@@ -143,25 +144,26 @@ class Simulator():
             elif self.set_of_rules == "IMS":
                 peer = Peer_IMS_simulator(id = id, name = "Peer_IMS_simulator")
                 self.lg.debug("simulator: IMS peer created")
-        self.lg.critical("simulator: {}: alive till consuming {} chunks".format(id, chunks_before_leave))
+        self.lg.debug("simulator: {}: alive till consuming {} chunks".format(id, chunks_before_leave))
 
         #peer.chunks_before_leave = chunks_before_leave
-        peer.set_splitter(splitter_id)
-        if peer.connect_to_the_splitter(peer_port=0):
-            peer.receive_the_public_endpoint()
-            peer.receive_the_peer_index_in_team()
-            peer.receive_the_number_of_peers()
-            peer.listen_to_the_team()
-            peer.receive_the_list_of_peers()
-            if isinstance(peer, Peer_faulty):
-                peer.choose_target()
-            peer.receive_the_buffer_size()
-            peer.receive_the_chunk_size()
-            #peer.send_ready_for_receiving_chunks()
-            #peer.send_peer_type()   #Only for simulation purpose
-            # peer.buffer_data()
-            # peer.start()
-            peer.run()
+        if peer:
+            peer.set_splitter(splitter_id)
+            if peer.connect_to_the_splitter(peer_port=0):
+                peer.receive_the_public_endpoint()
+                peer.receive_the_peer_index_in_team()
+                peer.receive_the_number_of_peers()
+                peer.listen_to_the_team()
+                peer.receive_the_list_of_peers()
+                if isinstance(peer, Peer_faulty):
+                    peer.choose_target()
+                peer.receive_the_buffer_size()
+                peer.receive_the_chunk_size()
+                #peer.send_ready_for_receiving_chunks()
+                #peer.send_peer_type()   #Only for simulation purpose
+                # peer.buffer_data()
+                # peer.start()
+                peer.run()
 
         '''
         while not peer.ready_to_leave_the_team:

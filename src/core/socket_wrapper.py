@@ -14,10 +14,9 @@ latency = 0.005  # Seconds (L0)
 
 import time  # (L1)
 import socket
-if __debug__:
-    import sys
-    #from .stderr import stderr as info
-    import logging
+import sys
+#from .stderr import stderr as info
+import logging
 
 class Socket_wrapper():
     AF_INET = socket.AF_INET
